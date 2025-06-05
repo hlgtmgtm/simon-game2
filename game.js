@@ -1,152 +1,105 @@
-const container = document.querySelector(".container");
-const scoreDisplay = document.getElementById("score");
-const highscoresList = document.getElementById("highscores");
-const music = document.getElementById("music");
+// 获取元素
+const startBtn = document.getElementById('startBtn');
+const container = document.querySelector('.container');
+const scoreDisplay = document.getElementById('score');
+const soundToggle = document.getElementById('soundToggle');
 
 let sequence = [];
 let playerSequence = [];
 let score = 0;
-let playing = false;
 let buttonsCount = 4;
-let delay = 800;
-let soundEnabled = true;
-let currentTheme = 'light';
+let soundOn = true;
 
-const colors = ["red", "green", "blue", "yellow", "orange", "purple"];
-let buttons = [];
+// 颜色和对应音效文件名
+const colors = ['red', 'green', 'blue', 'yellow'];
 
-function setDifficulty(level) {
-  switch (level) {
-    case 'easy': delay = 1000; break;
-    case 'normal': delay = 800; break;
-    case 'hard': delay = 500; break;
-    case 'hell': delay = 300; break;
-  }
-}
-
-document.getElementById("modeSelect").addEventListener("change", (e) => {
-  setDifficulty(e.target.value);
-});
-
-document.getElementById("buttonSelect").addEventListener("change", (e) => {
-  buttonsCount = parseInt(e.target.value);
-  createButtons();
-});
-
-document.getElementById("soundToggle").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  document.getElementById("soundStatus").textContent = soundEnabled ? "On" : "Off";
-});
-
-document.getElementById("themeToggle").addEventListener("click", () => {
-  currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-  document.body.classList.toggle('dark');
-  document.getElementById("themeStatus").textContent = currentTheme === 'light' ? "Light" : "Dark";
-});
-
-document.getElementById("startBtn").addEventListener("click", startGame);
-
+// 创建按钮
 function createButtons() {
-  container.innerHTML = "";
-  buttons = [];
+  container.innerHTML = ''; // 清空
   for (let i = 0; i < buttonsCount; i++) {
-    const btn = document.createElement("button");
-    btn.classList.add("button");
-    btn.style.background = colors[i];
-    btn.dataset.color = colors[i];
-    btn.addEventListener("click", () => handleClick(colors[i]));
+    const btn = document.createElement('button');
+    btn.classList.add('button');
+    btn.style.backgroundColor = colors[i];
+    btn.id = colors[i];
+    btn.addEventListener('click', () => handlePlayerClick(colors[i]));
     container.appendChild(btn);
-    buttons.push(btn);
   }
 }
 
-function playSound(color) {
-  if (soundEnabled) {
+// 播放按钮高亮动画
+function playButton(color) {
+  const btn = document.getElementById(color);
+  btn.classList.add('active');
+  if (soundOn) {
+    // 播放音效（需准备对应文件）
     const audio = new Audio(`sounds/${color}.mp3`);
     audio.play();
   }
+  setTimeout(() => btn.classList.remove('active'), 500);
 }
 
-function flashButton(color) {
-  const btn = buttons.find(b => b.dataset.color === color);
-  if (!btn) return;
-  btn.classList.add("active");
-  playSound(color);
-  setTimeout(() => btn.classList.remove("active"), delay / 2);
-}
-
+// 播放序列动画
 function playSequence() {
   let i = 0;
   const interval = setInterval(() => {
-    flashButton(sequence[i]);
+    playButton(sequence[i]);
     i++;
     if (i >= sequence.length) clearInterval(interval);
-  }, delay);
+  }, 700);
 }
 
-function nextRound() {
-  const nextColor = colors[Math.floor(Math.random() * buttonsCount)];
-  sequence.push(nextColor);
-  playSequence();
-  playerSequence = [];
-}
-
-function handleClick(color) {
-  if (!playing) return;
-  const expectedColor = sequence[playerSequence.length];
+// 玩家点击事件处理
+function handlePlayerClick(color) {
   playerSequence.push(color);
-  flashButton(color);
-  if (color !== expectedColor) {
-    endGame();
+  playButton(color);
+
+  // 检查玩家输入
+  const currentIndex = playerSequence.length - 1;
+  if (playerSequence[currentIndex] !== sequence[currentIndex]) {
+    alert(`Game Over! Your score: ${score}`);
+    resetGame();
     return;
   }
+
   if (playerSequence.length === sequence.length) {
     score++;
     scoreDisplay.textContent = score;
-    setTimeout(nextRound, delay);
+    playerSequence = [];
+    addStepToSequence();
+    setTimeout(playSequence, 1000);
   }
 }
 
+// 添加随机步骤
+function addStepToSequence() {
+  const randomColor = colors[Math.floor(Math.random() * buttonsCount)];
+  sequence.push(randomColor);
+}
+
+// 开始游戏
 function startGame() {
-  playing = true;
   score = 0;
   sequence = [];
   playerSequence = [];
   scoreDisplay.textContent = score;
-  if (soundEnabled) music.play();
-  nextRound();
+  addStepToSequence();
+  playSequence();
 }
 
-function endGame() {
-  playing = false;
-  alert("Game Over! Your score: " + score);
-  music.pause();
-  music.currentTime = 0;
-  saveScore(score);
+// 重置游戏
+function resetGame() {
+  score = 0;
+  sequence = [];
+  playerSequence = [];
+  scoreDisplay.textContent = score;
 }
 
-function saveScore(score) {
-  fetch("save_score.php", {
-    method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ score })
-  })
-  .then(() => loadHighScores());
-}
+// 音效开关
+soundToggle.addEventListener('click', () => {
+  soundOn = !soundOn;
+  document.getElementById('soundStatus').textContent = soundOn ? 'On' : 'Off';
+});
 
-function loadHighScores() {
-  fetch("get_highscores.php")
-    .then(res => res.json())
-    .then(data => {
-      highscoresList.innerHTML = "";
-      data.forEach((item, index) => {
-        const li = document.createElement("li");
-        li.textContent = `${index + 1}. ${item.score} points`;
-        highscoresList.appendChild(li);
-      });
-    });
-}
-
+// 初始化按钮并绑定事件
 createButtons();
-setDifficulty('normal');
-loadHighScores();
+startBtn.addEventListener('click', startGame);
