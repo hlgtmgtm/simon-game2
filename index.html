@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simon Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="settings">
+    <label>Mode:
+      <select id="modeSelect">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+        <option value="hell">Hell</option>
+      </select>
+    </label>
+
+    <label>Buttons:
+      <select id="buttonSelect">
+        <option value="4">4</option>
+        <option value="6">6</option>
+      </select>
+    </label>
+
+    <button id="soundToggle">Sound: <span id="soundStatus">On</span></button>
+    <button id="themeToggle">Theme: <span id="themeStatus">Light</span></button>
+  </div>
+
+  <h1>Simon Game</h1>
+  <p>Score: <span id="score">0</span></p>
+  <button id="startBtn">Start Game</button>
+
+  <div class="container"></div>
+
+  <h2>Top 10 Scores</h2>
+  <ol id="highscores"></ol>
+
+  <audio id="music" src="sounds/music.mp3" loop></audio>
+
+  <script src="game.js"></script>
+</body>
+</html>
