@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simon记忆游戏增强版</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      color: #FFD700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      background: linear-gradient(to right, #ff8a00, #da1b60);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .score-container {
+      text-align: center;
+    }
+    
+    .score-label {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: #bbb;
+    }
+    
+    #score {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #FFD700;
+    }
+    
+    .streak-container {
+      text-align: center;
+    }
+    
+    .streak-label {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: #bbb;
+    }
+    
+    #streak {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    
+    .timer-container {
+      text-align: center;
+    }
+    
+    .timer-label {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: #bbb;
+    }
+    
+    #timer {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #2196F3;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 180px;
+    }
+    
+    .control-label {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #ddd;
+    }
+    
+    select, button {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      border: none;
+      background: #2c3e50;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    select:hover, button:hover {
+      background: #34495e;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    select:focus, button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+    }
+    
+    button {
+      background: linear-gradient(to right, #3498db, #2980b9);
+      font-weight: bold;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    }
+    
+    #startBtn {
+      background: linear-gradient(to right, #2ecc71, #27ae60);
+    }
+    
+    #resetBtn {
+      background: linear-gradient(to right, #e74c3c, #c0392b);
+    }
+    
+    #buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      aspect-ratio: 1/1;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      border: 4px solid rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .btn:hover::before {
+      opacity: 1;
+    }
+    
+    .btn.active {
+      transform: scale(0.95);
+      box-shadow: 0 0 30px white, inset 0 0 30px white;
+      opacity: 1 !important;
+    }
+    
+    .red { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+    .green { background: linear-gradient(135deg, #00b09b, #96c93d); }
+    .blue { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+    .yellow { background: linear-gradient(135deg, #f9d423, #ff4e50); }
+    .purple { background: linear-gradient(135deg, #834d9b, #d04ed6); }
+    .orange { background: linear-gradient(135deg, #ff8008, #ffc837); }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .badge-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+      min-height: 80px;
+    }
+    
+    .badge {
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #ff8a00, #da1b60);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: badgeAppear 0.5s ease;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+    
+    .badge.fade {
+      opacity: 0.3;
+    }
+    
+    @keyframes badgeAppear {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .highscores-section {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .highscores-section h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #FFD700;
+      font-size: 1.8rem;
+    }
+    
+    #highscores {
+      list-style-type: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    
+    #highscores li {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .instructions {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #3498db;
+    }
+    
+    .instructions p {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    
+    .game-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 30px 50px;
+      border-radius: 15px;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      z-index: 100;
+      box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+      display: none;
+      border: 3px solid #e74c3c;
+    }
+    
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .control-group {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      #buttons {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Simon记忆游戏</h1>
+      <p>记住颜色序列并准确重复！</p>
+    </header>
+    
+    <div class="game-info">
+      <div class="score-container">
+        <div class="score-label">分数</div>
+        <div id="score">0</div>
+      </div>
+      
+      <div class="streak-container">
+        <div class="streak-label">连续通过</div>
+        <div id="streak">0</div>
+      </div>
+      
+      <div class="timer-container">
+        <div class="timer-label">反应时间</div>
+        <div id="timer">0.00s</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-label">难度</div>
+        <select id="difficulty">
+          <option value="easy">简单</option>
+          <option value="medium">中等</option>
+          <option value="hard">地狱</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label">模式</div>
+        <select id="mode">
+          <option value="4">4 按钮</option>
+          <option value="6">6 按钮</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label">操作</div>
+        <button id="startBtn">开始游戏</button>
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label">重置</div>
+        <button id="resetBtn">重置游戏</button>
+      </div>
+    </div>
+    
+    <div id="buttons">
+      <div class="btn red" id="red"></div>
+      <div class="btn green" id="green"></div>
+      <div class="btn blue" id="blue"></div>
+      <div class="btn yellow" id="yellow"></div>
+      <div class="btn purple hidden" id="purple"></div>
+      <div class="btn orange hidden" id="orange"></div>
+    </div>
+    
+    <div class="badge-container" id="badgeContainer"></div>
+    
+    <div class="highscores-section">
+      <h2>最高分排行榜</h2>
+      <ul id="highscores"></ul>
+    </div>
+    
+    <div class="instructions">
+      <h3>游戏说明</h3>
+      <p>1. 点击"开始游戏"按钮开始</p>
+      <p>2. 记住游戏展示的颜色序列</p>
+      <p>3. 按照相同顺序点击颜色按钮</p>
+      <p>4. 每通过一关，序列会增加</p>
+      <p>5. 连续通过10关可获得徽章奖励</p>
+    </div>
+  </div>
+  
+  <div id="gameOverMessage" class="game-message">游戏结束!</div>
+  
+  <footer>
+    <p>Simon记忆游戏增强版 | 使用Web Audio API提供声音效果</p>
+  </footer>
+  
+  <script>
+    // 游戏状态变量
+    let pattern = [];
+    let playerInput = [];
+    let score = 0;
+    let streak = 0;
+    let colors = ["red", "green", "blue", "yellow"];
+    let startTime = 0;
+    let timerInterval = null;
+    let difficulty = "easy";
+    let mode = "4";
+    
+    // 难度设置
+    const difficultySettings = {
+      easy: { speed: 1000, addCount: 1 },
+      medium: { speed: 700, addCount: 2 },
+      hard: { speed: 400, addCount: 3 }
+    };
+    
+    // 高分记录
+    let highScores = [];
+    
+    // 初始化Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // 生成音调
+    function playTone(frequency, duration = 200) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration/1000);
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration/1000);
+    }
+    
+    // 播放按钮声音
+    function playButtonSound(color) {
+      const tones = {
+        red: 262,   // C4
+        green: 330, // E4
+        blue: 392,  // G4
+        yellow: 494, // B4
+        purple: 587, // D5
+        orange: 698  // F5
+      };
+      playTone(tones[color], 200);
+    }
+    
+    // 播放成功音效
+    function playSuccessSound() {
+      playTone(523.25, 300); // C5
+      setTimeout(() => playTone(659.25, 300), 150); // E5
+      setTimeout(() => playTone(783.99, 400), 300); // G5
+    }
+    
+    // 播放失败音效
+    function playFailSound() {
+      playTone(220, 500); // A3
+      setTimeout(() => playTone(174.61, 700), 200); // F3
+    }
+    
+    // 播放徽章音效
+    function playBadgeSound() {
+      playTone(1046.50, 200); // C6
+      setTimeout(() => playTone(1318.51, 200), 100); // E6
+      setTimeout(() => playTone(1567.98, 300), 200); // G6
+    }
+    
+    // 更新游戏模式
+    function updateMode() {
+      mode = document.getElementById("mode").value;
+      colors = mode === "6" 
+        ? ["red", "green", "blue", "yellow", "purple", "orange"] 
+        : ["red", "green", "blue", "yellow"];
+      
+      document.querySelectorAll(".btn").forEach(btn => {
+        if (colors.includes(btn.id)) {
+          btn.classList.remove("hidden");
+        } else {
+          btn.classList.add("hidden");
+        }
+      });
+      
+      resetGame();
+    }
+    
+    // 更新游戏难度
+    function updateDifficulty() {
+      difficulty = document.getElementById("difficulty").value;
+    }
+    
+    // 开始计时器
+    function startTimer() {
+      clearInterval(timerInterval);
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById("timer").textContent = elapsed.toFixed(2) + "s";
+      }, 10);
+    }
+    
+    // 停止计时器
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+    
+    // 添加徽章
+    function addBadge() {
+      const badgeContainer = document.getElementById("badgeContainer");
+      
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.innerHTML = `<span>🏆</span> 连续通过 ${streak} 关!`;
+      badgeContainer.appendChild(badge);
+      
+      // 添加徽章音效
+      playBadgeSound();
+      
+      // 5秒后淡化徽章
+      setTimeout(() => {
+        badge.classList.add("fade");
+      }, 5000);
+    }
+    
+    // 播放颜色序列
+    function playPattern() {
+      stopTimer();
+      let i = 0;
+      const speed = difficultySettings[difficulty].speed;
+      const interval = setInterval(() => {
+        flashButton(pattern[i]);
+        i++;
+        if (i >= pattern.length) clearInterval(interval);
+      }, speed);
+      
+      // 序列播放完成后开始计时
+      setTimeout(startTimer, speed * pattern.length);
+    }
+    
+    // 闪烁按钮
+    function flashButton(color) {
+      const btn = document.getElementById(color);
+      btn.classList.add("active");
+      playButtonSound(color);
+      setTimeout(() => btn.classList.remove("active"), 500);
+    }
+    
+    // 添加新颜色到序列
+    function addToPattern() {
+      streak++;
+      
+      // 每10关显示徽章
+      if (streak % 10 === 0) {
+        addBadge();
+      }
+      
+      const addCount = difficultySettings[difficulty].addCount;
+      
+      // 根据难度添加多个颜色
+      for (let i = 0; i < addCount; i++) {
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        pattern.push(randomColor);
+      }
+      
+      playPattern();
+    }
+    
+    // 处理玩家点击
+    function handleClick(color) {
+      // 如果游戏未开始，忽略点击
+      if (pattern.length === 0) return;
+      
+      flashButton(color);
+      playerInput.push(color);
+      const index = playerInput.length - 1;
+      
+      // 检查玩家输入是否正确
+      if (playerInput[index] !== pattern[index]) {
+        playFailSound();
+        stopTimer();
+        
+        // 显示游戏结束消息
+        const gameOverMsg = document.getElementById("gameOverMessage");
+        gameOverMsg.textContent = `游戏结束! 最终分数: ${score}`;
+        gameOverMsg.style.display = "block";
+        
+        // 保存分数
+        saveScore(score);
+        
+        // 3秒后隐藏消息
+        setTimeout(() => {
+          gameOverMsg.style.display = "none";
+          resetGame();
+        }, 3000);
+        
+        return;
+      }
+      
+      // 检查玩家是否完成当前序列
+      if (playerInput.length === pattern.length) {
+        stopTimer();
+        const timeTaken = (Date.now() - startTime) / 1000;
+        
+        // 计算得分（时间越短得分越高）
+        score += Math.max(1, Math.floor(10 / timeTaken));
+        document.getElementById("score").textContent = score;
+        document.getElementById("streak").textContent = streak;
+        
+        // 播放成功音效
+        playSuccessSound();
+        
+        // 准备下一轮
+        playerInput = [];
+        setTimeout(addToPattern, 1000);
+      }
+    }
+    
+    // 重置游戏
+    function resetGame() {
+      stopTimer();
+      document.getElementById("timer").textContent = "0.00s";
+      pattern = [];
+      playerInput = [];
+      score = 0;
+      streak = 0;
+      document.getElementById("score").textContent = "0";
+      document.getElementById("streak").textContent = "0";
+    }
+    
+    // 保存分数（模拟）
+    function saveScore(score) {
+      // 在实际应用中，这里会发送分数到服务器
+      // 这里使用本地存储模拟
+      highScores.push(score);
+      highScores.sort((a, b) => b - a);
+      highScores = highScores.slice(0, 10); // 只保留前10名
+      updateHighScores();
+    }
+    
+    // 更新高分榜
+    function updateHighScores() {
+      const list = document.getElementById("highscores");
+      list.innerHTML = "";
+      
+      highScores.forEach((s, index) => {
+        const li = document.createElement("li");
+        li.textContent = `#${index + 1}: ${s}`;
+        list.appendChild(li);
+      });
+    }
+    
+    // 初始化游戏
+    function initGame() {
+      // 从本地存储加载高分
+      const savedScores = localStorage.getItem("simonHighScores");
+      if (savedScores) {
+        highScores = JSON.parse(savedScores);
+        updateHighScores();
+      }
+      
+      updateMode();
+      updateDifficulty();
+    }
+    
+    // 事件监听器
+    document.getElementById("startBtn").addEventListener("click", () => {
+      resetGame();
+      addToPattern();
+    });
+    
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    
+    document.getElementById("mode").addEventListener("change", updateMode);
+    document.getElementById("difficulty").addEventListener("change", updateDifficulty);
+    
+    document.querySelectorAll(".btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        handleClick(btn.id);
+      });
+    });
+    
+    // 页面加载时初始化游戏
+    window.addEventListener("load", initGame);
+    
+    // 页面关闭前保存高分
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("simonHighScores", JSON.stringify(highScores));
+    });
+  </script>
+</body>
+</html>
